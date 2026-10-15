@@ -1,7 +1,7 @@
 # Region to deploy into
 variable "aws_region" {
   type    = string
-  default = "us-west-2"
+  default = "us-east-1"
 }
 
 # ECR & ECS settings
@@ -17,12 +17,19 @@ variable "service_name" {
 
 variable "container_port" {
   type    = number
-  default = 8080
+  default = 8081
 }
 
 variable "ecs_count" {
   type    = number
   default = 1
+}
+
+# Must match the machine that builds the image:
+# ARM64 for Apple Silicon, X86_64 for Intel/AMD (Windows, Linux, Intel Mac)
+variable "cpu_architecture" {
+  type    = string
+  default = "ARM64"
 }
 
 # How long to keep logs

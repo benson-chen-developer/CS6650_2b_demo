@@ -11,6 +11,12 @@ resource "aws_ecs_task_definition" "this" {
   cpu                      = var.cpu
   memory                   = var.memory
 
+  # Must match the architecture of the machine that builds the Docker image
+  runtime_platform {
+    cpu_architecture        = var.cpu_architecture
+    operating_system_family = "LINUX"
+  }
+
   execution_role_arn = var.execution_role_arn
   task_role_arn      = var.task_role_arn
 

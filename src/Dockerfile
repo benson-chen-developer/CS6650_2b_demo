@@ -1,20 +1,23 @@
-FROM golang:1.24-alpine  AS build
-RUN apk add --no-cache git
+FROM golang:1.27 AS build
 
 WORKDIR /src
+
+# Copy the module files first so the dependency download is cached
+# and only re-runs when go.mod / go.sum change
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY . .
-# disable cgo, target linux, static link
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w" -o server .
+# Copy the source code
+COPY product-service.go .
 
-FROM alpine:latest
-RUN apk add --no-cache ca-certificates
+# CGO_ENABLED=0 makes a static binary that runs on the minimal image below
+RUN CGO_ENABLED=0 GOOS=linux go build -o /product-service product-service.go
 
-WORKDIR /app
-COPY --from=build /src/server .
+# ---- Run stage: tiny image with just the binary ----
+FROM gcr.io/distroless/static
 
-EXPOSE 8080
-ENTRYPOINT ["./server"]
+COPY --from=build /product-service /product-service
+
+EXPOSE 8081
+
+ENTRYPOINT ["/product-service"]

@@ -33,7 +33,8 @@ module "ecs" {
   task_role_arn      = data.aws_iam_role.lab_role.arn
   log_group_name     = module.logging.log_group_name
   ecs_count          = var.ecs_count
-  region             = var.aws_region
+  cpu_architecture   = var.cpu_architecture
+  region            = var.aws_region
 }
 
 

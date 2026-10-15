@@ -49,6 +49,12 @@ variable "region" {
   description = "AWS region (for awslogs driver)"
 }
 
+variable "cpu_architecture" {
+  type        = string
+  default     = "ARM64"
+  description = "Fargate CPU architecture: ARM64 or X86_64"
+}
+
 variable "cpu" {
   type        = string
   default     = "256"
