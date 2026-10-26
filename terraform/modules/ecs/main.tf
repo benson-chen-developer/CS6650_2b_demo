@@ -48,9 +48,52 @@ resource "aws_ecs_service" "this" {
   desired_count   = var.ecs_count
   launch_type     = "FARGATE"
 
+  # Give new tasks time to boot before the ALB health check can fail them
+  health_check_grace_period_seconds = 60
+
   network_configuration {
     subnets         = var.subnet_ids
     security_groups = var.security_group_ids
     assign_public_ip = true
+  }
+
+  # Register each task's IP in the ALB target group
+  load_balancer {
+    target_group_arn = var.target_group_arn
+    container_name   = "${var.service_name}-container"
+    container_port   = var.container_port
+  }
+
+  # The autoscaler owns the task count after creation, so Terraform must not reset it
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+}
+
+# Tell Application Auto Scaling it may change this service's task count
+resource "aws_appautoscaling_target" "this" {
+  service_namespace  = "ecs"
+  scalable_dimension = "ecs:service:DesiredCount"
+  resource_id        = "service/${aws_ecs_cluster.this.name}/${aws_ecs_service.this.name}"
+  min_capacity       = var.min_capacity
+  max_capacity       = var.max_capacity
+}
+
+# Target tracking: add or remove tasks to hold average CPU near the target
+resource "aws_appautoscaling_policy" "cpu" {
+  name               = "${var.service_name}-cpu-target"
+  policy_type        = "TargetTrackingScaling"
+  service_namespace  = aws_appautoscaling_target.this.service_namespace
+  scalable_dimension = aws_appautoscaling_target.this.scalable_dimension
+  resource_id        = aws_appautoscaling_target.this.resource_id
+
+  target_tracking_scaling_policy_configuration {
+    target_value       = var.cpu_target
+    scale_out_cooldown = var.scale_out_cooldown
+    scale_in_cooldown  = var.scale_in_cooldown
+
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
   }
 }

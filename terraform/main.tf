@@ -22,8 +22,16 @@ data "aws_iam_role" "lab_role" {
   name = "LabRole"
 }
 
+module "alb" {
+  source         = "./modules/alb"
+  service_name   = var.service_name
+  container_port = var.container_port
+  subnet_ids     = module.network.subnet_ids
+}
+
 module "ecs" {
   source             = "./modules/ecs"
+  target_group_arn   = module.alb.target_group_arn
   service_name       = var.service_name
   image              = "${module.ecr.repository_url}:latest"
   container_port     = var.container_port
@@ -33,6 +41,9 @@ module "ecs" {
   task_role_arn      = data.aws_iam_role.lab_role.arn
   log_group_name     = module.logging.log_group_name
   ecs_count          = var.ecs_count
+  cpu_target         = var.cpu_target
+  min_capacity       = var.min_capacity
+  max_capacity       = var.max_capacity
   cpu_architecture   = var.cpu_architecture
   region            = var.aws_region
 }

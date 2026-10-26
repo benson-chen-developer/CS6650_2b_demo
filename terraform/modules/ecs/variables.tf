@@ -38,6 +38,41 @@ variable "log_group_name" {
   description = "CloudWatch log group name"
 }
 
+variable "target_group_arn" {
+  type        = string
+  description = "ALB target group to register tasks into"
+}
+
+variable "min_capacity" {
+  type        = number
+  default     = 2
+  description = "Minimum task count for auto scaling"
+}
+
+variable "max_capacity" {
+  type        = number
+  default     = 4
+  description = "Maximum task count for auto scaling"
+}
+
+variable "cpu_target" {
+  type        = number
+  default     = 70
+  description = "Average CPU utilization (%) the autoscaler tries to hold"
+}
+
+variable "scale_out_cooldown" {
+  type        = number
+  default     = 300
+  description = "Seconds to wait after a scale-out before scaling out again"
+}
+
+variable "scale_in_cooldown" {
+  type        = number
+  default     = 300
+  description = "Seconds to wait after a scale-in before scaling in again"
+}
+
 variable "ecs_count" {
   type        = number
   default     = 1

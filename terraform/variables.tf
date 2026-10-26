@@ -22,7 +22,23 @@ variable "container_port" {
 
 variable "ecs_count" {
   type    = number
+  default = 2
+}
+
+# Autoscaling knobs for the scaling-policy experiments
+variable "cpu_target" {
+  type    = number
+  default = 50
+}
+
+variable "min_capacity" {
+  type    = number
   default = 1
+}
+
+variable "max_capacity" {
+  type    = number
+  default = 4
 }
 
 # Must match the machine that builds the image:

@@ -1,3 +1,5 @@
+# Downloads AWS and Docker and then logs in to both
+
 # Specify where to find the AWS & Docker providers
 terraform {
   required_providers {
@@ -18,9 +20,11 @@ provider "aws" {
 }
 
 # Fetch an ECR auth token so Terraform's Docker provider can log in
+# Takes your exisiting AWS credentials and then asks for an ECR temp login token
 data "aws_ecr_authorization_token" "registry" {}
 
-# Configure Docker provider to authenticate against ECR automatically
+# Docker takes the 3 parts of the token to now be able to push an image
+# to the ECR address
 provider "docker" {
   registry_auth {
     address  = data.aws_ecr_authorization_token.registry.proxy_endpoint
